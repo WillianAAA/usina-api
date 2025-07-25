@@ -3,6 +3,10 @@ import sqlite3
 import json
 
 app = Flask(__name__)
+@app.route("/", methods=["GET"])
+def home():
+    return {"mensagem": "API da Usina Solar no ar"}
+
 DB = 'servidor_leituras.db'
 
 @app.route('/api/receber-leitura', methods=['POST'])
