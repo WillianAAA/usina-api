@@ -1,8 +1,8 @@
 import sqlite3
 
-DB = 'servidor_leituras.db'
+DB_PATH = 'servidor_leituras.db'
 
-conn = sqlite3.connect(DB)
+conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
 
 cur.execute('''

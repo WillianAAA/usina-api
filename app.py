@@ -9,28 +9,33 @@ DB = 'servidor_leituras.db'
 def receber_leitura():
     try:
         data = request.get_json()
+        leituras = data.get("leituras", [])
 
-        usina = data.get('usina_nome')
-        equipamento = data.get('equipamento_nome')
-        timestamp = data.get('timestamp')
-        dados = data.get('dados')
-
-        if not usina or not equipamento or not timestamp or not dados:
-            return jsonify({'erro': 'Campos obrigatórios: usina_nome, equipamento_nome, timestamp, dados'}), 400
-
+        if not leituras: 
+            return jsonify({"erro": "Payload vazio"}), 400
+        
         conn = sqlite3.connect(DB)
         cur = conn.cursor()
-        cur.execute('''
-            INSERT INTO leituras_remotas (usina_nome, equipamento_nome, timestamp, dados_json)
-            VALUES (?, ?, ?, ?)
-        ''', (usina, equipamento, timestamp, json.dumps(dados)))
+
+        for leitura in leituras: 
+            usina = leitura.get('usina_nome')
+            equipamento = leitura.get('equipamento_nome')
+            timestamp = leitura.get('timestamp')
+            dados = json.dumps(leitura.get("dados", {}))
+
+            cur.execute('''
+                INSERT INTO leituras_remotas (usina_nome, equipamento_nome, timestamp, dados_json)
+                VALUES (?, ?, ?, ?)
+            ''', (usina, equipamento, timestamp, dados))
+
         conn.commit()
         conn.close()
-
-        return jsonify({'status': 'sucesso'}), 200
+        return jsonify({"status": "lote gravado com sucesso"}), 200
 
     except Exception as e:
-        return jsonify({'erro': f'Erro interno: {str(e)}'}), 500
+        print(f"[ERRO] {e}")
+        return jsonify({"erro": f"Erro interno: {e}"}), 500
+        
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
