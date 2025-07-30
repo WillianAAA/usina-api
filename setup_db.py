@@ -1,3 +1,6 @@
+
+###### NÃO ESTAMOS USANDO MAIS (O BANCO MUDOU PARA POSTGRESQL) ########
+
 import sqlite3
 
 DB_PATH = 'servidor_leituras.db'
