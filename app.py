@@ -1,15 +1,12 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List, Dict, Any
 import psycopg2
-import json 
-import os
+import json
+import os 
 from datetime import datetime
 
-app = Flask(__name__)
-@app.route("/", methods=["GET"])
-def home():
-    return {"mensagem": "API da Usina Solar no ar"}
-
-# Configuração da conexão com PostgreSQL (exemplo: Render)
+# Configuração da conexão com PostgreSQL
 DB_HOST = os.getenv("DB_HOST", "dpg-d24jgfidbo4c73eck56g-a.oregon-postgres.render.com")
 DB_NAME = os.getenv("DB_NAME", "usina_database")
 DB_USER = os.getenv("DB_USER", "willi")
@@ -25,38 +22,48 @@ def get_db_connection():
         port=DB_PORT
     )
 
-@app.route('/api/receber-leitura', methods=['POST'])
-def receber_leitura():
-    try:
-        data = request.get_json()
-        leituras = data.get("leituras", [])
+# Definição do app
+app = FastAPI(title="Usina Solar API", version="2.0.0")
 
-        if not leituras: 
-            return jsonify({"erro": "Payload vazio"}), 400
-        
+# Modelos Pydantic para validação
+class Leitura(BaseModel):
+    usina_nome: str
+    equipamento_nome: str
+    timestamp: datetime  # você pode trocar para datetime se quiser validar formato
+    dados: Dict[str, Any]
+
+class Payload(BaseModel):
+    leituras: List[Leitura]
+
+@app.get("/")
+def home():
+    return {"mensagem": "API da Usina Solar no ar"}
+
+@app.post("/api/receber-leitura")
+def receber_leitura(payload: Payload):
+    try:
+        leituras = payload.leituras
+        if not leituras:
+            raise HTTPException(status_code=400, detail="Payload vazio")
+
         conn = get_db_connection()
         cur = conn.cursor()
 
-        for leitura in leituras: 
-            usina = leitura.get('usina_nome')
-            equipamento = leitura.get('equipamento_nome')
-            timestamp = leitura.get('timestamp')
-            dados = json.dumps(leitura.get("dados", {}))
-
-            cur.execute('''
+        for leitura in leituras:
+            cur.execute(
+                """
                 INSERT INTO leituras_remotas (usina_nome, equipamento_nome, timestamp, dados_json)
                 VALUES (%s, %s, %s, %s)
-            ''', (usina, equipamento, timestamp, dados))
+                """,
+                (leitura.usina_nome, leitura.equipamento_nome, leitura.timestamp, json.dumps(leitura.dados))
+            )
 
-        conn.commit() 
-        cur.close() 
+        conn.commit()
+        cur.close()
         conn.close()
-        return jsonify({"status": "lote gravado com sucesso"}), 200
+
+        return {"status": "lote gravado com sucesso"}
 
     except Exception as e:
         print(f"[ERRO] {e}")
-        return jsonify({"erro": f"Erro interno: {e}"}), 500
-        
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+        raise HTTPException(status_code=500, detail=f"Erro interno: {e}")
