@@ -36,7 +36,7 @@ class Payload(BaseModel):
     leituras: List[Leitura]
 
 @app.get("/")
-def home():
+async def home():
     return {"mensagem": "API da Usina Solar no ar"}
 
 @app.post("/api/receber-leitura")

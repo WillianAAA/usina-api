@@ -2,9 +2,10 @@ services:
   - type: web
     name: usina-api
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn -k uvicorn.workers.UvicornWorker app:app"
     plan: free
+    region: brazil  # você pode mudar a região se quiser
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app:app --host 0.0.0.0 --port 10000"
     envVars:
-      - key: ENV
-        value: production
+      - key: PYTHON_VERSION
+        value: 3.10
