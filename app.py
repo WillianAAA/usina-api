@@ -7,10 +7,10 @@ import os
 from datetime import datetime
 
 # Configuração da conexão com PostgreSQL
-DB_HOST = os.getenv("DB_HOST", "dpg-d24jgfidbo4c73eck56g-a.oregon-postgres.render.com")
-DB_NAME = os.getenv("DB_NAME", "usina_database")
+DB_HOST = os.getenv("DB_HOST", "dpg-d36lol8gjchc73cemo80-a.oregon-postgres.render.com")
+DB_NAME = os.getenv("DB_NAME", "usina_database_mzkw")
 DB_USER = os.getenv("DB_USER", "willi")
-DB_PASS = os.getenv("DB_PASS", "Oi79dL1qcBsAH69xBGNqALU3xFwFWcwj")
+DB_PASS = os.getenv("DB_PASS", "bqJp74aITRmq6JW4fsQegEHhbBurcZsc")
 DB_PORT = os.getenv("DB_PORT", "5432")
 
 def get_db_connection():
